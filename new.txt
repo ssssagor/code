@@ -1,4 +1,44 @@
 
+prolog
+% Basic facts: who loves whom
+loves(romeo, juliet).
+loves(juliet, romeo).
+loves(paris, juliet).
+loves(helen, paris).
+loves(jack, rose).
+loves(rose, jack).
+loves(anna, elsa).  % one-sided
+loves(john, mary).
+
+% Mutual love
+mutual_love(X, Y) :-
+    loves(X, Y),
+    loves(Y, X),
+    X \= Y.
+
+% One-sided love
+one_sided_love(X, Y) :-
+    loves(X, Y),
+    \+ loves(Y, X).
+
+% Unloved person
+unloved(X) :-
+    loves(X, _),
+    \+ (loves(_, X)).
+
+% Jealousy: someone loves your lover
+jealous(X, Y) :-
+    loves(X, Z),
+    loves(Y, Z),
+    X \= Y.
+
+% Who is single (loves no one and is not loved by anyone)
+single(X) :-
+    \+ loves(X, _),
+    \+ loves(_, X).
+
+------------------------------------------
+
 (define (domain hanoi)
   (:requirements :strips :typing)
   (:types disk peg)

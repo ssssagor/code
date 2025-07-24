@@ -1,0 +1,201 @@
+
+(define (domain hanoi)
+  (:requirements :strips :typing)
+  (:types disk peg)
+
+  (:predicates
+    (on ?d - disk ?p - peg)      ; disk is on a peg
+    (on-top ?d1 - disk ?d2 - disk) ; disk d1 is on disk d2
+    (clear ?d - disk)            ; nothing on top of this disk
+    (clear-peg ?p - peg)         ; peg has no disk on top
+    (smaller ?d1 - disk ?d2 - disk) ; d1 is smaller than d2
+    (holding ?d - disk)          ; robot arm is holding a disk
+    (handempty)                  ; robot hand is free
+  )
+
+  ;; pick disk from peg
+  (:action pick-from-peg
+    :parameters (?d - disk ?p - peg)
+    :precondition (and (on ?d ?p) (clear ?d) (handempty))
+    :effect (and (holding ?d)
+                 (not (on ?d ?p))
+                 (not (clear ?d))
+                 (not (handempty))
+                 (clear-peg ?p))
+  )
+
+  ;; pick disk from another disk
+  (:action pick-from-disk
+    :parameters (?d1 - disk ?d2 - disk)
+    :precondition (and (on-top ?d1 ?d2) (clear ?d1) (handempty))
+    :effect (and (holding ?d1)
+                 (not (on-top ?d1 ?d2))
+                 (clear ?d2)
+                 (not (clear ?d1))
+                 (not (handempty)))
+  )
+
+  ;; put disk on peg
+  (:action put-on-peg
+    :parameters (?d - disk ?p - peg)
+    :precondition (and (holding ?d) (clear-peg ?p))
+    :effect (and (on ?d ?p)
+                 (clear ?d)
+                 (handempty)
+                 (not (holding ?d))
+                 (not (clear-peg ?p)))
+  )
+
+  ;; put disk on another disk
+  (:action put-on-disk
+    :parameters (?d1 - disk ?d2 - disk)
+    :precondition (and (holding ?d1) (clear ?d2) (smaller ?d1 ?d2))
+    :effect (and (on-top ?d1 ?d2)
+                 (clear ?d1)
+                 (handempty)
+                 (not (holding ?d1))
+                 (not (clear ?d2)))
+  )
+)
+
+
+
+(define (problem hanoi-3-disks)
+  (:domain hanoi)
+
+  (:objects
+    peg1 peg2 peg3 - peg
+    d1 d2 d3 - disk
+  )
+
+  (:init
+    ;; disk sizes
+    (smaller d1 d2)
+    (smaller d1 d3)
+    (smaller d2 d3)
+
+    ;; initial positions: all on peg1 (d1 is smallest and on top)
+    (on d3 peg1)
+    (on-top d2 d3)
+    (on-top d1 d2)
+
+    ;; clearness
+    (clear d1)
+    (handempty)
+  )
+
+  (:goal
+    (and
+      (on d3 peg3)
+      (on-top d2 d3)
+      (on-top d1 d2)
+    )
+  )
+)
+
+------------------------------------
+(define (domain blocks-world)
+  (:requirements :strips :typing)
+  (:types block)
+  
+  (:predicates
+    (on ?x - block ?y - block)
+    (ontable ?x - block)
+    (clear ?x - block)
+    (handempty)
+    (holding ?x - block)
+  )
+
+  (:action pick-up
+    :parameters (?x - block)
+    :precondition (and (clear ?x) (ontable ?x) (handempty))
+    :effect (and
+              (not (ontable ?x))
+              (not (clear ?x))
+              (not (handempty))
+              (holding ?x))
+  )
+
+  (:action put-down
+    :parameters (?x - block)
+    :precondition (holding ?x)
+    :effect (and
+              (ontable ?x)
+              (clear ?x)
+              (handempty)
+              (not (holding ?x)))
+  )
+
+  (:action stack
+    :parameters (?x - block ?y - block)
+    :precondition (and (holding ?x) (clear ?y))
+    :effect (and
+              (on ?x ?y)
+              (clear ?x)
+              (handempty)
+              (not (clear ?y))
+              (not (holding ?x)))
+  )
+
+  (:action unstack
+    :parameters (?x - block ?y - block)
+    :precondition (and (on ?x ?y) (clear ?x) (handempty))
+    :effect (and
+              (holding ?x)
+              (clear ?y)
+              (not (on ?x ?y))
+              (not (clear ?x))
+              (not (handempty)))
+  )
+)
+
+--------------------------------------
+(define (problem block-problem)
+  (:domain blocks-world)
+  (:objects A B C - block)
+
+  (:init
+    (ontable A)
+    (ontable B)
+    (on C A)
+    (clear B)
+    (clear C)
+    (handempty)
+  )
+
+  (:goal
+    (and
+      (on A B)
+      (on B C)
+    )
+  )
+)
+-----------------------------------------
+
+
+
+(define (problem blocks-problem)
+  (:domain blocks-world)
+
+  (:objects
+    A B C - block
+  )
+
+  ;; 🔹 Start state
+  (:init
+    (ontable A)
+    (ontable B)
+    (on C A)
+    (clear B)
+    (clear C)
+    (handempty)
+  )
+
+  ;; 🔹 Goal state (End goal to reach)
+  (:goal
+    (and
+      (on A B)
+      (on B C)
+    )
+  )
+)
